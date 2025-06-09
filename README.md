@@ -9,7 +9,7 @@
 [![Lint: Ruff](https://img.shields.io/badge/lint-ruff-000000.svg)](https://docs.astral.sh/ruff/)
 [![Typing: mypy](https://img.shields.io/badge/typing-checked-blue.svg)](https://mypy.readthedocs.io/en/stable/)
 
-> A CLI tool that scans your project files and updates copyright notices to reflect the current year
+> A CLI tool that scans your project files and updates copyright notices to reflect the current year.
 
 ![Demo](https://raw.githubusercontent.com/viseshrp/cprt/main/demo.gif)
 
