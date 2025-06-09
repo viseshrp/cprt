@@ -1,4 +1,4 @@
-"""Console script for cprt."""
+"""The console script for cprt."""
 
 import click
 
@@ -17,7 +17,7 @@ from .cprt import do_stuff
 @click.version_option(_version, "-v", "--version")
 def main(stuff: str) -> None:
     """
-    lightweight CLI tool that scans your project files and updates copyright notices to reflect the current year
+    A CLI tool that scans your project files and updates copyright notices to reflect the current year
 
     \b
     Example usages:

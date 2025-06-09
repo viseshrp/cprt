@@ -11,22 +11,18 @@ repos:
       - id: trailing-whitespace
         exclude: \.py$  # Ruff handles Python files
 
-  # ✨ Ruff for lint + format
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.11.7
-    hooks:
-      - id: ruff
-        args: [ --exit-non-zero-on-fix ]
-
   # 🧪 Typing, dependency, security checks
   - repo: https://github.com/psf/black
     rev: 25.1.0
     hooks:
       - id: black
-        args: [
-          --line-length=100,
-          --target-version=py39
-        ]
+
+  # ✨ Ruff for lint + format
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.11.10
+    hooks:
+      # Run the linter alone
+      - id: ruff-check
 
   - repo: https://github.com/pypa/pip-audit
     rev: v2.9.0
@@ -39,7 +35,13 @@ repos:
     rev: 1.8.3
     hooks:
       - id: bandit
-        args: [ "-lll", "-n", "3", "-r", "-x", "venv/*,setup.py,tests/*" ]
+        args: [
+          "-c", "pyproject.toml",
+          "-r",
+          "-n", "3",
+          "--severity-level", "high"
+        ]
+        additional_dependencies: [ "bandit[toml]" ]
 
   - repo: https://github.com/codespell-project/codespell
     rev: v2.4.1
@@ -60,23 +62,14 @@ repos:
         entry: mypy
         language: system
         types: [ python ]
-        args: [
-          "--disallow-untyped-defs",
-          "--no-implicit-optional",
-          "--warn-unused-ignores",
-          "--warn-return-any"
-        ]
+        args: [ "--config-file=pyproject.toml" ]
 
       - id: vulture
         name: vulture
         entry: vulture
         language: system
         types: [ python ]
-        args: [
-          "cprt",
-          "tests",
-          "--min-confidence", "80"
-        ]
+        args: [ "--config", "pyproject.toml" ]
         pass_filenames: false
 
       - id: deptry
@@ -85,6 +78,7 @@ repos:
         language: python
         language_version: python3
         types: [ python ]
+        args: [ "--config", "pyproject.toml" ]
         pass_filenames: false
 
       - id: cog

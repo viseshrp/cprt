@@ -9,7 +9,7 @@
 [![Lint: Ruff](https://img.shields.io/badge/lint-ruff-000000.svg)](https://docs.astral.sh/ruff/)
 [![Typing: mypy](https://img.shields.io/badge/typing-checked-blue.svg)](https://mypy.readthedocs.io/en/stable/)
 
-> lightweight CLI tool that scans your project files and updates copyright notices to reflect the current year
+> A CLI tool that scans your project files and updates copyright notices to reflect the current year
 
 ![Demo](https://raw.githubusercontent.com/viseshrp/cprt/main/demo.gif)
 
@@ -21,9 +21,9 @@ Explain the problem this tool solves or the goal it's intended to fulfill.
 
 Explain how the tool works.
 
-## 🛠️ Features
+## 📐 Requirements
 
-* Does stuff
+* Python >= 3.9
 
 ## 📦 Installation
 
@@ -39,9 +39,9 @@ pip install cprt
 cprt --help
 ```
 
-## 📐 Requirements
+## 🛠️ Features
 
-* Python >= 3.9
+* Does stuff
 
 ## 🧾 Changelog
 
