@@ -53,7 +53,6 @@ class CopyrightTransformer(cst.CSTTransformer):
     def leave_EmptyLine(  # noqa: N802
         self, original: cst.EmptyLine, updated: cst.EmptyLine
     ) -> cst.EmptyLine:
-        _ = original
         if updated.comment:
             new_val = self._update_comment(updated.comment.value)
             if new_val != updated.comment.value:
@@ -63,7 +62,6 @@ class CopyrightTransformer(cst.CSTTransformer):
     def leave_TrailingWhitespace(  # noqa: N802
         self, original: cst.TrailingWhitespace, updated: cst.TrailingWhitespace
     ) -> cst.TrailingWhitespace:
-        _ = original
         if updated.comment:
             new_val = self._update_comment(updated.comment.value)
             if new_val != updated.comment.value:
@@ -71,14 +69,36 @@ class CopyrightTransformer(cst.CSTTransformer):
         return updated
 
 
+async def run(
+    directory: str,
+    company: str,
+    custom_pattern: re.Pattern | None,
+    extensions: tuple[str, ...],
+) -> None:
+    current_year = datetime.datetime.now().year
+    tasks = []
+    exts = {f".{e.lstrip('.')}" for e in extensions}
+    for file_path in Path(directory).rglob("*"):
+        if file_path.is_file() and file_path.suffix in exts:
+            if file_path.suffix == ".py":
+                tasks.append(process_py_file(file_path, current_year, company, custom_pattern))
+            else:
+                tasks.append(process_text_file(file_path, current_year, company, custom_pattern))
+    await asyncio.gather(*tasks)
+
+
 async def process_py_file(
-    file_path: Path, current_year: int, company: str, custom_pattern: re.Pattern | None
+    file_path: Path,
+    current_year: int,
+    company: str,
+    custom_pattern: re.Pattern | None,
 ) -> None:
     try:
         content = await aiofiles.open(file_path, encoding="utf-8").read()
     except Exception as e:
         click.echo(f"Error reading {file_path}: {e}", err=True)
         return
+
     try:
         module = cst.parse_module(content)
         transformer = CopyrightTransformer(current_year, company, custom_pattern)
@@ -92,7 +112,10 @@ async def process_py_file(
 
 
 async def process_text_file(
-    file_path: Path, current_year: int, company: str, custom_pattern: re.Pattern | None
+    file_path: Path,
+    current_year: int,
+    company: str,
+    custom_pattern: re.Pattern | None,
 ) -> None:
     try:
         async with aiofiles.open(file_path, encoding="utf-8") as f:
@@ -100,6 +123,7 @@ async def process_text_file(
     except Exception as e:
         click.echo(f"Error reading {file_path}: {e}", err=True)
         return
+
     escaped = re.escape(company)
     range_pat = (
         custom_pattern
@@ -109,6 +133,7 @@ async def process_text_file(
     single_pat = (
         custom_pattern if custom_pattern else re.compile(rf"Copyright (\d{{4}}) ({escaped})")
     )
+
     updated = []
     modified = False
     for line in lines:
@@ -116,18 +141,17 @@ async def process_text_file(
         m_range = range_pat.match(text)
         if m_range:
             start = m_range.group(1)
-            new_line = f"Copyright {start}-{current_year} {company}\n"
-            updated.append(new_line)
+            updated.append(f"Copyright {start}-{current_year} {company}\n")
             modified = True
             continue
         m_single = single_pat.match(text)
         if m_single:
             start = m_single.group(1)
-            new_line = f"Copyright {start}-{current_year} {company}\n"
-            updated.append(new_line)
+            updated.append(f"Copyright {start}-{current_year} {company}\n")
             modified = True
             continue
         updated.append(line)
+
     if modified:
         try:
             async with aiofiles.open(file_path, "w", encoding="utf-8") as f:
@@ -135,18 +159,3 @@ async def process_text_file(
             click.echo(f"Updated copyright notice in: {file_path}")
         except Exception as e:
             click.echo(f"Error writing {file_path}: {e}", err=True)
-
-
-async def run(
-    directory: str, company: str, custom_pattern: re.Pattern | None, extensions: tuple[str, ...]
-) -> None:
-    current_year = datetime.datetime.now().year
-    tasks = []
-    exts = {f".{e.lstrip('.')}" for e in extensions}
-    for file_path in Path(directory).rglob("*"):
-        if file_path.is_file() and file_path.suffix in exts:
-            if file_path.suffix == ".py":
-                tasks.append(process_py_file(file_path, current_year, company, custom_pattern))
-            else:
-                tasks.append(process_text_file(file_path, current_year, company, custom_pattern))
-    await asyncio.gather(*tasks)
